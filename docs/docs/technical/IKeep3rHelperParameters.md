@@ -19,7 +19,7 @@ The boost base used to calculate the boost rewards for the keeper
 
 
 
-### `kp3rWethPool() → address poolAddress, bool isTKNToken0` (external)
+### `kp3rWethPool() → address poolAddress, bool isKP3RToken0` (external)
 
 KP3R-WETH pool that is being used as oracle
 
@@ -214,13 +214,13 @@ Emitted when minimum rewarded priority fee is changed
 
 
 
-### `TokenOraclePool`
+### `Kp3rWethOraclePool`
 
 
 address poolAddress
 
 
-bool isTKNToken0
+bool isKP3RToken0
 
 
 

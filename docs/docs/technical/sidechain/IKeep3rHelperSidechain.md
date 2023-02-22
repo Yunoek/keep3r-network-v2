@@ -18,7 +18,7 @@ Ethereum mainnet WETH address used for quoting references
 
 
 
-### `wethUSDPool() → address poolAddress, bool isTKNToken0` (external)
+### `wethUSDPool() → address poolAddress, bool isWETHToken0, uint8 usdDecimals` (external)
 
 WETH-USD pool that is being used as oracle
 
@@ -40,7 +40,7 @@ Sets an oracle for a given liquidity
 
 The oracle must contain KP3R as either token0 or token1
 
-### `setWethUsdPool(address _poolAddress)` (external)
+### `setWethUsdPool(address _poolAddress, uint8 _usdDecimals)` (external)
 
 Sets an oracle for querying WETH/USD quote
 
@@ -55,12 +55,24 @@ The oracle for a liquidity has been saved
 
 
 
-### `WethUSDPoolChange(address _address, bool _isWETHToken0)`
+### `WethUSDPoolChange(address _address, bool _isWETHToken0, uint8 _usdDecimals)`
 
 Emitted when the WETH USD pool is changed
 
 
 
+
+
+### `WethUsdOraclePool`
+
+
+address poolAddress
+
+
+bool isWETHToken0
+
+
+uint8 usdDecimals
 
 
 
