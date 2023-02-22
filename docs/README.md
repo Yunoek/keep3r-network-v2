@@ -25,7 +25,7 @@ The Keep3r Network also supports staking in Optimism and Polygon, where the paym
 | -------- | -------- | -------- |
 | Ethereum (`1`)    | Keep3r     | `0xeb02addCfD8B773A5FFA6B9d1FE99c566f8c44CC`     |
 | Optimism (`10`)    | Keep3rSidechain     | `0x745a50320B6eB8FF281f1664Fc6713991661B129`     |
-| Polygon (`137`)    | Keep3rSidechain     | `TBD`     |
+| Polygon (`137`)    | Keep3rSidechain     | `0x745a50320B6eB8FF281f1664Fc6713991661B129`     |
 
 #### Testnet environment
 | Chain (`chainId`) | Implementation | Address |
