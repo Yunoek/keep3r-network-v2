@@ -16,7 +16,7 @@ To handle KP3R credits minting and quoting, **Keep3r introduces reward periods, 
 
 The underlying KP3R of the liquidity provided, should generate the same amount of KP3R every [`inflationPeriod`](../../technical/peripherals/ikeep3rparameters.md#inflationperiod-uint256-_period-external), thereby minting the proportional amount each [`rewardPeriod`](../../technical/peripherals/ikeep3rparameters.md#rewardperiodtime-uint256-_days-external) as KP3R credits for the job. These credits are only to be earned by keepers when working the job, and by the end of each `rewardPeriod`, unused credits older than previous `rewardPeriodStart` are meant to expire.
 
-<!-- ![Credit mining without work](../../.gitbook/assets/image%20%284%29.png) -->
+![Credit mining without work](../../assets/credit-mining.png)
 
 When a new `rewardPeriod` starts, the first keeper to work the first job will:
 
@@ -49,13 +49,13 @@ A keeper will be able to run the job, as long as `totalJobCredits` is greater th
 
 In a normal case scenario, a job should be rewarded once every reward period starts, and burn all remaining credits from the expired period \(the one previous to the last full period\).
 
-<!-- ![Normal case scenario](../../.gitbook/assets/image%20%289%29.png) -->
+![Normal case scenario](../../assets/credit-mining-wo-deficit.png)
 
 > `LiquidityCreditsReward` marks are positioned responding to the event timestamp parameter, and not the timestamp of the event emission
 
 In a deficitary job scenario, when the job is spending more KP3R in a period than it should be rewarded, the job will be able to keep on paying keepers, but the minting period will start to shrink, having to mint more frequently.
 
-<!-- ![Deficitary job scenario](../../.gitbook/assets/image%20%287%29.png) -->
+![Deficitary job scenario](../../assets/credit-mining-w-deficit.png)
 
 > `KeeperWork` marks have been hidden not to overlap `LiquidityCreditsReward` (since they are simultaneous)
 
@@ -67,17 +67,17 @@ Ultimately, when the job has not enough `totalJobCredits` to reward the keeper f
 
 At particular times, a job can make a payment of up to 2 times its `jobPeriodCredits`, as long as all the credits minted have not yet expired.
 
-<!-- ![Credits spending greater than jobPeriodCredits](../../.gitbook/assets/image%20%282%29.png) -->
+![Credits spending greater than jobPeriodCredits](../../assets/credit-max-spenditure.png)
 
 **Updating Credits**
 
 Since quotes can change every epoch, Keep3r recalculates every period how many KP3R a job should be mined each period, aggregated by [`jobPeriodCredits`](../../technical/peripherals/ikeep3rjobfundableliquidity.md#jobperiodcredits-address-_job-uint256-_amount-external).
 
-<!-- ![Credit mining with quote change](../../.gitbook/assets/image%20%285%29.png) -->
+![Credit mining with quote change](../../assets/credit-mining-w-sm-inflation.png)
 
 Since KP3R/WETH is also stored and **stable inside periods**, keeper payments are also updated to current quotes.
 
-<!-- ![Work scenario with quote change](../../.gitbook/assets/image%20%281%29.png) -->
+![Work scenario with quote change](../../assets/credit-mining-w-xl-inflation.png)
 
 #### Removing Liquidity
 
