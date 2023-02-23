@@ -1,6 +1,6 @@
 #!/bin/sh
 
-OUTPUT_DIR="docs/technical"
+OUTPUT_DIR="docs/docs/technical"
 
 # clean output directory
 rm -rf $OUTPUT_DIR
@@ -10,6 +10,3 @@ yarn solidity-docgen -i solidity/interfaces -o $OUTPUT_DIR --solc-module solc-0.
 
 # leave only docs/interfaces files in docs directory
 rm -rf $OUTPUT_DIR/for-test $OUTPUT_DIR/contracts
-
-# set directory title
-echo "# Technical" > $OUTPUT_DIR/README.md
