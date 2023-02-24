@@ -1,14 +1,17 @@
+---
+sidebar_position: 2
+---
 # Credit Mining
 
 ### Job Credits
 
-A Job can generate new credits with time, by bonding Keep3r Liquidity Pool tokens `kLP` to it. Liquidities will be handled by the [Keep3r Liquidity Pools](../keep3r-liquidity-pools.md).
+A Job can generate new credits with time, by bonding Keep3r Liquidity Pool tokens `kLP` to it. Liquidities will be handled by the [Keep3r Liquidity Pools](../keep3r-liquidity-pools/README.md).
 
 Once `kLPs` are added to a job with [`addLiquidityToJob`](../../technical/peripherals/IKeep3rJobFundableLiquidity.md#addliquiditytojob-address-_job-address-_liquidity-uint256-_amount-external), the job starts immediately to mine new KP3R credits, that can be collectable only by the keepers, in reward for working the job. The credit mining system requires no further action from the `jobOwner`.
 
-{% hint style="info" %}
+:::info
 KP3R Credits can only be rewarded within the protocol, requiring an unbonding period that gives time to disputers to detect keepers and jobs that act in bad faith
-{% endhint %}
+:::
 
 #### Reward Periods
 
@@ -16,7 +19,7 @@ To handle KP3R credits minting and quoting, **Keep3r introduces reward periods, 
 
 The underlying KP3R of the liquidity provided, should generate the same amount of KP3R every [`inflationPeriod`](../../technical/peripherals/IKeep3rParameters.md#inflationperiod-uint256-_period-external), thereby minting the proportional amount each [`rewardPeriod`](../../technical/peripherals/IKeep3rParameters.md#rewardperiodtime-uint256-_days-external) as KP3R credits for the job. These credits are only to be earned by keepers when working the job, and by the end of each `rewardPeriod`, unused credits older than previous `rewardPeriodStart` are meant to expire.
 
-![Credit mining without work](./img/image-4.png)
+![Credit mining without work](./img/credit-mining-wo-work.png)
 
 When a new `rewardPeriod` starts, the first keeper to work the first job will:
 
@@ -29,9 +32,9 @@ Following keepers of different jobs, will have to update each job accountance \(
 
 Updating jobs accountance requires no other action from the keeper than working the job.
 
-{% hint style="info" %}
+:::info
 A `worked()` transaction that has to update quotes and reward the job is more gas-consuming, therefore has a higher keeper reward
-{% endhint %}
+:::
 
 #### Quoting the Liquidity
 
@@ -49,11 +52,11 @@ A keeper will be able to run the job, as long as `totalJobCredits` is greater th
 
 In a normal case scenario, a job should be rewarded once every reward period starts, and burn all remaining credits from the expired period \(the one previous to the last full period\). 
 
-![Normal case scenario](./img/image-9.png)
+![Normal case scenario](./img/credit-mining-wo-deficit.png)
 
 In a deficitary job scenario, when the job is spending more KP3R in a period than it should be rewarded, the job will be able to keep on paying keepers, but the minting period will start to shrink, having to mint more frequently.
 
-![Deficitary job scenario](./img/image-7.png)
+![Deficitary job scenario](./img/credit-mining-w-deficit.png)
 
 Each time, the reward period will be shorter, as the job is not being rewarded the full amount for a period, but only the proportional relation of the time that passed since the last reward, and the `rewardPeriod`.
 
@@ -63,17 +66,17 @@ Ultimately, when the job has not enough `totalJobCredits` to reward the keeper f
 
 At particular times, a job can make a payment of up to 2 times its `jobPeriodCredits`, as long as all the credits minted have not yet expired. 
 
-![Credits spending greater than jobPeriodCredits](./img/image-2.png)
+![Credits spending greater than jobPeriodCredits](./img/credit-max-spenditure.png)
 
 **Updating Credits**
 
 Since quotes can change every epoch, Keep3r recalculates every period how many KP3R a job should be mined each period, aggregated by [`jobPeriodCredits`](../../technical/peripherals/IKeep3rJobFundableLiquidity.md#jobperiodcredits-address-_job-uint256-_amount-external).
 
-![Credit mining with quote change](./img/image-5.png)
+![Credit mining with quote change](./img/credit-mining-w-sm-inflation.png)
 
 Since KP3R/WETH is also stored and **stable inside periods**, keeper payments are also updated to current quotes.
 
-![Work scenario with quote change](./img/image-1.png)
+![Work scenario with quote change](./img/credit-mining-w-xl-inflation.png)
 
 #### Removing Liquidity
 

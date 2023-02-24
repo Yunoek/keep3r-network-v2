@@ -10,7 +10,7 @@ const config = {
   tagline: 'All the Jobs That’s Fit to Network.',
   url: 'https://keep3r.network/',
   baseUrl: '/',
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   noIndex: true,

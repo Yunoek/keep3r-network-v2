@@ -16,7 +16,7 @@ describe('@skip-on-coverage Job', () => {
   let keep3r: Keep3r;
   let job: JobForTest;
   let pair: UniV3PairManager;
-  let governance: JsonRpcSigner;
+  let governor: JsonRpcSigner;
   let snapshotId: string;
 
   // Parameter and function equivalent to contract's
@@ -31,13 +31,13 @@ describe('@skip-on-coverage Job', () => {
     jobOwner = await wallet.impersonate(common.RICH_ETH_ADDRESS);
     keeper = await wallet.generateRandomWithEth(toUnit(10));
 
-    ({ keep3r, governance } = await common.setupKeep3r());
+    ({ keep3r, governor } = await common.setupKeep3r());
 
     rewardPeriodTime = (await keep3r.rewardPeriodTime()).toNumber();
 
     job = await common.createJobForTest(keep3r.address, jobOwner);
 
-    pair = await common.createLiquidityPair(governance);
+    pair = await common.createLiquidityPair(governor);
 
     richGuy = await wallet.impersonate(common.RICH_KP3R_ADDRESS);
 
@@ -56,7 +56,7 @@ describe('@skip-on-coverage Job', () => {
   });
 
   it('should not be able to add liquidity to an unexistent job', async () => {
-    await keep3r.connect(governance).approveLiquidity(pair.address);
+    await keep3r.connect(governor).approveLiquidity(pair.address);
     await expect(keep3r.connect(jobOwner).addLiquidityToJob(job.address, pair.address, toUnit(1))).to.be.revertedWith('JobUnavailable()');
   });
 
@@ -71,9 +71,9 @@ describe('@skip-on-coverage Job', () => {
 
       // create job and add liquidity to it
       await keep3r.connect(jobOwner).addJob(job.address);
-      await keep3r.connect(governance).approveLiquidity(pair.address);
+      await keep3r.connect(governor).approveLiquidity(pair.address);
 
-      const response = await common.addLiquidityToPair(richGuy, pair, liquidityAdded, jobOwner);
+      const response = await common.mintLiquidity(richGuy, pair, liquidityAdded, jobOwner._address);
       initialLiquidity = response.liquidity;
       spentKp3rs = response.spentKp3rs;
 
@@ -140,7 +140,7 @@ describe('@skip-on-coverage Job', () => {
       // wait some days in order for that liquidity to generate credits
       await evm.advanceTimeAndBlock(moment.duration(2, 'days').as('seconds'));
 
-      const { liquidity } = await common.addLiquidityToPair(richGuy, pair, toUnit(1), jobOwner);
+      const { liquidity } = await common.mintLiquidity(richGuy, pair, toUnit(1), jobOwner._address);
       await pair.connect(jobOwner).approve(keep3r.address, liquidity);
       await keep3r.connect(jobOwner).addLiquidityToJob(job.address, pair.address, liquidity);
 

@@ -14,7 +14,7 @@ describe('@skip-on-coverage Keeper Job Interaction', () => {
   let keep3rV1: IKeep3rV1;
   let helper: Keep3rHelperForTest;
   let job: JobForTest;
-  let governance: JsonRpcSigner;
+  let governor: JsonRpcSigner;
   let keep3rV1Proxy: IKeep3rV1Proxy;
   let keep3rV1ProxyGovernance: JsonRpcSigner;
   let keeper: JsonRpcSigner;
@@ -30,19 +30,19 @@ describe('@skip-on-coverage Keeper Job Interaction', () => {
     jobOwner = await wallet.impersonate(common.RICH_KP3R_ADDRESS);
     keeper = await wallet.impersonate(common.RICH_ETH_ADDRESS);
 
-    ({ keep3r, governance, keep3rV1, keep3rV1Proxy, keep3rV1ProxyGovernance, helper } = await common.setupKeep3r());
+    ({ keep3r, governor, keep3rV1, keep3rV1Proxy, keep3rV1ProxyGovernance, helper } = await common.setupKeep3r());
 
     // create job
     job = await common.createJobForTest(keep3r.address, jobOwner);
-    await keep3r.connect(governance).addJob(job.address);
+    await keep3r.connect(governor).addJob(job.address);
 
     // create keeper
     await keep3r.connect(keeper).bond(keep3rV1.address, 0);
     await evm.advanceTimeAndBlock(moment.duration(3, 'days').as('seconds'));
     await keep3r.connect(keeper).activate(keep3rV1.address);
 
-    pair = await common.createLiquidityPair(governance);
-    await keep3r.connect(governance).approveLiquidity(pair.address);
+    pair = await common.createLiquidityPair(governor);
+    await keep3r.connect(governor).approveLiquidity(pair.address);
 
     pool = (await ethers.getContractAt('IUniswapV3Pool', common.KP3R_WETH_V3_POOL_ADDRESS)) as IUniswapV3Pool;
   });
@@ -53,7 +53,7 @@ describe('@skip-on-coverage Keeper Job Interaction', () => {
 
   it('should pay the keeper with bonds from job credits', async () => {
     // add liquidity to pair
-    const { liquidity } = await common.addLiquidityToPair(jobOwner, pair, toUnit(10), jobOwner);
+    const { liquidity } = await common.mintLiquidity(jobOwner, pair, toUnit(10), jobOwner._address);
     // add credit to job
     await pair.connect(jobOwner).approve(keep3r.address, liquidity);
     await keep3r.connect(jobOwner).addLiquidityToJob(job.address, pair.address, liquidity);
@@ -118,7 +118,7 @@ describe('@skip-on-coverage Keeper Job Interaction', () => {
 
   async function testKeeperPayment(expectedBoost: BigNumber, workFn: () => Promise<ContractTransaction>, baseFee: BigNumber) {
     // add liquidity to pair
-    const { liquidity } = await common.addLiquidityToPair(jobOwner, pair, toUnit(100), jobOwner);
+    const { liquidity } = await common.mintLiquidity(jobOwner, pair, toUnit(100), jobOwner._address);
     // add credit to job
     await pair.connect(jobOwner).approve(keep3r.address, liquidity);
     await keep3r.connect(jobOwner).addLiquidityToJob(job.address, pair.address, liquidity);

@@ -8,7 +8,7 @@ interface IKeep3rHelperParameters {
 
   /// @dev KP3R-WETH Pool address and isKP3RToken0
   /// @dev Created in order to save gas by avoiding calls to pool's token0 method
-  struct Kp3rWethPool {
+  struct Kp3rWethOraclePool {
     address poolAddress;
     bool isKP3RToken0;
   }
@@ -16,7 +16,7 @@ interface IKeep3rHelperParameters {
   // Errors
 
   /// @notice Throws when pool does not have KP3R as token0 nor token1
-  error InvalidKp3rPool();
+  error InvalidOraclePool();
 
   // Events
 

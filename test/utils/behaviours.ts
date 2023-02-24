@@ -9,12 +9,13 @@ chai.use(smock.matchers);
 
 export type Impersonator = Signer | Provider | string;
 
-export const onlyGovernance = createOnlyCallableCheck(['governance'], 'OnlyGovernance()');
-export const onlyPendingGovernance = createOnlyCallableCheck(['pending governance'], 'OnlyPendingGovernance()');
+export const onlyGovernor = createOnlyCallableCheck(['governor'], 'OnlyGovernor()');
+export const onlyPendingGovernor = createOnlyCallableCheck(['pending governor'], 'OnlyPendingGovernor()');
 export const onlyJobOwner = createOnlyCallableCheck(['job owner'], 'OnlyJobOwner()');
 export const onlyDisputer = createOnlyCallableCheck(['disputer'], 'OnlyDisputer()');
 export const onlySlasher = createOnlyCallableCheck(['slasher'], 'OnlySlasher()');
 export const onlyKeep3r = createOnlyCallableCheck(['keep3r'], 'OnlyKeep3r()');
+export const onlyMinter = createOnlyCallableCheck(['minter'], 'OnlyMinter()');
 
 export function createOnlyCallableCheck(allowedLabels: string[], error: string) {
   return (

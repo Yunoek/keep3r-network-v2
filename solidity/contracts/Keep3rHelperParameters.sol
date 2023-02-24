@@ -6,15 +6,16 @@ import './libraries/TickMath.sol';
 import '../interfaces/IKeep3r.sol';
 import '../interfaces/external/IKeep3rV1.sol';
 import '../interfaces/IKeep3rHelperParameters.sol';
-import './peripherals/Governable.sol';
 import './Keep3rHelperParameters.sol';
 
 import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
+import '@defi-wonderland/solidity-utils/solidity/interfaces/IBaseErrors.sol';
+import '@defi-wonderland/solidity-utils/solidity/contracts/Governable.sol';
 
-contract Keep3rHelperParameters is IKeep3rHelperParameters, Governable {
+contract Keep3rHelperParameters is IKeep3rHelperParameters, IBaseErrors, Governable {
   /// @inheritdoc IKeep3rHelperParameters
-  address public constant override KP3R = 0x1cEB5cB57C4D4E2b2433641b95Dd330A33185A44;
+  address public immutable override KP3R;
 
   /// @inheritdoc IKeep3rHelperParameters
   uint256 public constant override BOOST_BASE = 10_000;
@@ -29,7 +30,7 @@ contract Keep3rHelperParameters is IKeep3rHelperParameters, Governable {
   uint256 public override targetBond = 200 ether;
 
   /// @inheritdoc IKeep3rHelperParameters
-  uint256 public override workExtraGas = 50_000;
+  uint256 public override workExtraGas = 34_000;
 
   /// @inheritdoc IKeep3rHelperParameters
   uint32 public override quoteTwapTime = 10 minutes;
@@ -44,63 +45,78 @@ contract Keep3rHelperParameters is IKeep3rHelperParameters, Governable {
   address public override keep3rV2;
 
   /// @inheritdoc IKeep3rHelperParameters
-  IKeep3rHelperParameters.Kp3rWethPool public override kp3rWethPool;
+  IKeep3rHelperParameters.Kp3rWethOraclePool public override kp3rWethPool;
 
-  constructor(address _keep3rV2, address _governance) Governable(_governance) {
+  constructor(
+    address _kp3r,
+    address _keep3rV2,
+    address _governor,
+    address _kp3rWethPool
+  ) Governable(_governor) {
+    KP3R = _kp3r;
     keep3rV2 = _keep3rV2;
-    _setKp3rWethPool(0x11B7a6bc0259ed6Cf9DB8F499988F9eCc7167bf5);
+
+    // Immutable variables [KP3R] cannot be read during contract creation time [_setKp3rWethPool]
+    bool _isKP3RToken0 = _validateOraclePool(_kp3rWethPool, KP3R);
+    kp3rWethPool = Kp3rWethOraclePool(_kp3rWethPool, _isKP3RToken0);
+    emit Kp3rWethPoolChange(_kp3rWethPool, _isKP3RToken0);
   }
 
   /// @inheritdoc IKeep3rHelperParameters
-  function setKp3rWethPool(address _poolAddress) external override onlyGovernance {
+  function setKp3rWethPool(address _poolAddress) external override onlyGovernor {
+    if (_poolAddress == address(0)) revert ZeroAddress();
     _setKp3rWethPool(_poolAddress);
-    emit Kp3rWethPoolChange(kp3rWethPool.poolAddress, kp3rWethPool.isKP3RToken0);
   }
 
   /// @inheritdoc IKeep3rHelperParameters
-  function setMinBoost(uint256 _minBoost) external override onlyGovernance {
+  function setMinBoost(uint256 _minBoost) external override onlyGovernor {
     minBoost = _minBoost;
     emit MinBoostChange(minBoost);
   }
 
   /// @inheritdoc IKeep3rHelperParameters
-  function setMaxBoost(uint256 _maxBoost) external override onlyGovernance {
+  function setMaxBoost(uint256 _maxBoost) external override onlyGovernor {
     maxBoost = _maxBoost;
     emit MaxBoostChange(maxBoost);
   }
 
   /// @inheritdoc IKeep3rHelperParameters
-  function setTargetBond(uint256 _targetBond) external override onlyGovernance {
+  function setTargetBond(uint256 _targetBond) external override onlyGovernor {
     targetBond = _targetBond;
     emit TargetBondChange(targetBond);
   }
 
   /// @inheritdoc IKeep3rHelperParameters
-  function setKeep3rV2(address _keep3rV2) external override onlyGovernance {
+  function setKeep3rV2(address _keep3rV2) external override onlyGovernor {
+    if (_keep3rV2 == address(0)) revert ZeroAddress();
     keep3rV2 = _keep3rV2;
     emit Keep3rV2Change(keep3rV2);
   }
 
   /// @inheritdoc IKeep3rHelperParameters
-  function setWorkExtraGas(uint256 _workExtraGas) external override onlyGovernance {
+  function setWorkExtraGas(uint256 _workExtraGas) external override onlyGovernor {
     workExtraGas = _workExtraGas;
     emit WorkExtraGasChange(workExtraGas);
   }
 
   /// @inheritdoc IKeep3rHelperParameters
-  function setQuoteTwapTime(uint32 _quoteTwapTime) external override onlyGovernance {
+  function setQuoteTwapTime(uint32 _quoteTwapTime) external override onlyGovernor {
+    _setQuoteTwapTime(_quoteTwapTime);
+  }
+
+  function _setQuoteTwapTime(uint32 _quoteTwapTime) internal {
     quoteTwapTime = _quoteTwapTime;
     emit QuoteTwapTimeChange(quoteTwapTime);
   }
 
   /// @inheritdoc IKeep3rHelperParameters
-  function setMinBaseFee(uint256 _minBaseFee) external override onlyGovernance {
+  function setMinBaseFee(uint256 _minBaseFee) external override onlyGovernor {
     minBaseFee = _minBaseFee;
     emit MinBaseFeeChange(minBaseFee);
   }
 
   /// @inheritdoc IKeep3rHelperParameters
-  function setMinPriorityFee(uint256 _minPriorityFee) external override onlyGovernance {
+  function setMinPriorityFee(uint256 _minPriorityFee) external override onlyGovernor {
     minPriorityFee = _minPriorityFee;
     emit MinPriorityFeeChange(minPriorityFee);
   }
@@ -108,11 +124,13 @@ contract Keep3rHelperParameters is IKeep3rHelperParameters, Governable {
   /// @notice Sets KP3R-WETH pool
   /// @param _poolAddress The address of the KP3R-WETH pool
   function _setKp3rWethPool(address _poolAddress) internal {
-    bool _isKP3RToken0 = IUniswapV3Pool(_poolAddress).token0() == KP3R;
-    bool _isKP3RToken1 = IUniswapV3Pool(_poolAddress).token1() == KP3R;
+    bool _isKP3RToken0 = _validateOraclePool(_poolAddress, KP3R);
+    kp3rWethPool = Kp3rWethOraclePool(_poolAddress, _isKP3RToken0);
+    emit Kp3rWethPoolChange(_poolAddress, _isKP3RToken0);
+  }
 
-    if (!_isKP3RToken0 && !_isKP3RToken1) revert InvalidKp3rPool();
-
-    kp3rWethPool = Kp3rWethPool(_poolAddress, _isKP3RToken0);
+  function _validateOraclePool(address _poolAddress, address _token) internal view virtual returns (bool _isTKNToken0) {
+    _isTKNToken0 = IUniswapV3Pool(_poolAddress).token0() == _token;
+    if (!_isTKNToken0 && IUniswapV3Pool(_poolAddress).token1() != _token) revert InvalidOraclePool();
   }
 }

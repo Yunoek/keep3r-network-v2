@@ -5,7 +5,6 @@ import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 
 import '../contracts/libraries/LiquidityAmounts.sol';
-import '../contracts/libraries/PoolAddress.sol';
 import '../contracts/libraries/FixedPoint96.sol';
 import '../contracts/libraries/FullMath.sol';
 import '../contracts/libraries/TickMath.sol';
@@ -14,7 +13,7 @@ import '../interfaces/external/IWeth9.sol';
 import '../interfaces/IUniV3PairManager.sol';
 
 contract UniV3PairManagerForTest is UniV3PairManager {
-  constructor(address _pool, address _governance) UniV3PairManager(_pool, _governance) {}
+  constructor(address _pool, address _governor) UniV3PairManager(_pool, _governor) {}
 
   function internalAddLiquidity(
     uint256 amount0Desired,

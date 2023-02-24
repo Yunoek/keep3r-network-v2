@@ -1,12 +1,10 @@
-import IUniswapV3PoolArtifact from '@artifacts/@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json';
 import { FakeContract, MockContract, MockContractFactory, smock } from '@defi-wonderland/smock';
-import { KP3R_V1_ADDRESS, KP3R_WETH_V3_POOL_ADDRESS } from '@e2e/common';
+import { KP3R_V1_ADDRESS } from '@e2e/common';
 import { BigNumber } from '@ethersproject/bignumber';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import IKeep3rV1Artifact from '@solidity/interfaces/external/IKeep3rV1.sol/IKeep3rV1.json';
-import IKeep3rArtifact from '@solidity/interfaces/IKeep3r.sol/IKeep3r.json';
 import { IKeep3r, IKeep3rV1, IUniswapV3Pool, Keep3rHelperForTest, Keep3rHelperForTest__factory, ProxyForTest__factory } from '@types';
-import { behaviours, wallet } from '@utils';
+import { wallet } from '@utils';
+import { onlyGovernor } from '@utils/behaviours';
 import { toGwei, toUnit } from '@utils/bn';
 import { MathUtils, mathUtilsFactory } from '@utils/math';
 import chai, { expect } from 'chai';
@@ -24,7 +22,7 @@ describe('Keep3rHelper', () => {
 
   let kp3rV1Address: string;
   let targetBond: BigNumber;
-  let governance: SignerWithAddress;
+  let governor: SignerWithAddress;
   let randomKeeper: SignerWithAddress;
 
   let workExtraGas: BigNumber;
@@ -35,13 +33,13 @@ describe('Keep3rHelper', () => {
   let mathUtils: MathUtils;
 
   before(async () => {
-    [, governance, randomKeeper] = await ethers.getSigners();
+    [, governor, randomKeeper] = await ethers.getSigners();
 
     helperFactory = await smock.mock<Keep3rHelperForTest__factory>('Keep3rHelperForTest');
-    keep3r = await smock.fake(IKeep3rArtifact);
-    oraclePool = await smock.fake(IUniswapV3PoolArtifact, { address: KP3R_WETH_V3_POOL_ADDRESS });
+    keep3r = await smock.fake('IKeep3r');
+    oraclePool = await smock.fake('IUniswapV3Pool');
     oraclePool.token1.returns(KP3R_V1_ADDRESS);
-    helper = await helperFactory.deploy(keep3r.address, governance.address);
+    helper = await helperFactory.deploy(KP3R_V1_ADDRESS, keep3r.address, governor.address, oraclePool.address);
 
     kp3rV1Address = await helper.callStatic.KP3R();
     targetBond = await helper.callStatic.targetBond();
@@ -52,7 +50,7 @@ describe('Keep3rHelper', () => {
     oneTenthTick0 = BigNumber.from(-23027).mul(quoteTwapTime);
     oneTenthTick1 = BigNumber.from(0);
 
-    keep3rV1 = await smock.fake(IKeep3rV1Artifact, { address: kp3rV1Address });
+    keep3rV1 = await smock.fake('IKeep3rV1', { address: kp3rV1Address });
     mathUtils = mathUtilsFactory(0, 0);
 
     oraclePool.observe.returns([[oneTenthTick0, oneTenthTick1], []]);
@@ -367,16 +365,16 @@ describe('Keep3rHelper', () => {
 
   describe('setWorkExtraGas', () => {
     const newValue = 123;
-    behaviours.onlyGovernance(() => helper, 'setWorkExtraGas', governance, [newValue]);
+    onlyGovernor(() => helper, 'setWorkExtraGas', governor, [newValue]);
 
     it('should assign specified value to variable', async () => {
       expect(await helper.callStatic.workExtraGas()).not.to.equal(newValue);
-      await helper.connect(governance).setWorkExtraGas(newValue);
+      await helper.connect(governor).setWorkExtraGas(newValue);
       expect(await helper.callStatic.workExtraGas()).to.equal(newValue);
     });
 
     it('should emit event', async () => {
-      await expect(helper.connect(governance).setWorkExtraGas(newValue)).to.emit(helper, 'WorkExtraGasChange').withArgs(newValue);
+      await expect(helper.connect(governor).setWorkExtraGas(newValue)).to.emit(helper, 'WorkExtraGasChange').withArgs(newValue);
     });
   });
 

@@ -27,7 +27,12 @@ import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 
 contract Keep3rHelper is IKeep3rHelper, Keep3rHelperParameters {
-  constructor(address _keep3rV2, address _governance) Keep3rHelperParameters(_keep3rV2, _governance) {}
+  constructor(
+    address _kp3r,
+    address _keep3rV2,
+    address _governor,
+    address _kp3rWethPool
+  ) Keep3rHelperParameters(_kp3r, _keep3rV2, _governor, _kp3rWethPool) {}
 
   /// @inheritdoc IKeep3rHelper
   function quote(uint256 _eth) public view override returns (uint256 _amountOut) {
@@ -40,7 +45,7 @@ contract Keep3rHelper is IKeep3rHelper, Keep3rHelperParameters {
   }
 
   /// @inheritdoc IKeep3rHelper
-  function bonds(address _keeper) public view override returns (uint256 _amountBonded) {
+  function bonds(address _keeper) public view virtual override returns (uint256 _amountBonded) {
     return IKeep3r(keep3rV2).bonds(_keeper, KP3R);
   }
 
@@ -59,7 +64,7 @@ contract Keep3rHelper is IKeep3rHelper, Keep3rHelperParameters {
   /// @inheritdoc IKeep3rHelper
   function getRewardBoostFor(uint256 _bonds) public view override returns (uint256 _rewardBoost) {
     _bonds = Math.min(_bonds, targetBond);
-    uint256 _cap = Math.max(minBoost, minBoost + ((maxBoost - minBoost) * _bonds) / targetBond);
+    uint256 _cap = minBoost + ((maxBoost - minBoost) * _bonds) / targetBond;
     _rewardBoost = _cap * _getBasefee();
   }
 
@@ -69,7 +74,7 @@ contract Keep3rHelper is IKeep3rHelper, Keep3rHelperParameters {
   }
 
   /// @inheritdoc IKeep3rHelper
-  function isKP3RToken0(address _pool) public view override returns (bool _isKP3RToken0) {
+  function isKP3RToken0(address _pool) external view virtual override returns (bool _isKP3RToken0) {
     address _token0;
     address _token1;
     (_token0, _token1) = getPoolTokens(_pool);
@@ -82,7 +87,7 @@ contract Keep3rHelper is IKeep3rHelper, Keep3rHelperParameters {
 
   /// @inheritdoc IKeep3rHelper
   function observe(address _pool, uint32[] memory _secondsAgo)
-    public
+    external
     view
     override
     returns (
@@ -104,6 +109,7 @@ contract Keep3rHelper is IKeep3rHelper, Keep3rHelperParameters {
   function getPaymentParams(uint256 _bonds)
     external
     view
+    virtual
     override
     returns (
       uint256 _boost,
@@ -121,7 +127,7 @@ contract Keep3rHelper is IKeep3rHelper, Keep3rHelperParameters {
     uint256 _liquidityAmount,
     int56 _tickDifference,
     uint256 _timeInterval
-  ) public pure override returns (uint256 _kp3rAmount) {
+  ) external pure override returns (uint256 _kp3rAmount) {
     uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(int24(_tickDifference / int256(_timeInterval)));
     _kp3rAmount = FullMath.mulDiv(1 << 96, _liquidityAmount, sqrtRatioX96);
   }

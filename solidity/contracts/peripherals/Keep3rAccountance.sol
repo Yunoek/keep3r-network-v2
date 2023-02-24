@@ -3,12 +3,16 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import '../../interfaces/peripherals/IKeep3rAccountance.sol';
+import './Keep3rRoles.sol';
 
-abstract contract Keep3rAccountance is IKeep3rAccountance {
+abstract contract Keep3rAccountance is IKeep3rAccountance, Keep3rRoles {
   using EnumerableSet for EnumerableSet.AddressSet;
 
   /// @notice List of all enabled keepers
   EnumerableSet.AddressSet internal _keepers;
+
+  /// @inheritdoc IKeep3rAccountance
+  uint256 public override totalBonds;
 
   /// @inheritdoc IKeep3rAccountance
   mapping(address => uint256) public override workCompleted;

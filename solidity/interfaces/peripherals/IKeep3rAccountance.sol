@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
+import './IKeep3rRoles.sol';
+
 /// @title Keep3rDisputable contract
 /// @notice Disputes keepers, or if they're already disputed, it can resolve the case
 /// @dev Argument `bonding` can be the address of either a token or a liquidity
-interface IKeep3rAccountance {
+interface IKeep3rAccountance is IKeep3rRoles {
   // Events
 
   /// @notice Emitted when the bonding process of a new keeper begins
@@ -20,6 +22,10 @@ interface IKeep3rAccountance {
   event Unbonding(address indexed _keeperOrJob, address indexed _unbonding, uint256 _amount);
 
   // Variables
+
+  /// @notice Tracks the total amount of bonded KP3Rs in the contract
+  /// @return _totalBonds The total amount of bonded KP3Rs in the contract
+  function totalBonds() external view returns (uint256 _totalBonds);
 
   /// @notice Tracks the total KP3R earnings of a keeper since it started working
   /// @param _keeper The address of the keeper

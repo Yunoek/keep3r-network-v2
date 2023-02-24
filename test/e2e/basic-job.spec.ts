@@ -25,7 +25,7 @@ describe('@skip-on-coverage Basic Keeper Job Interaction', () => {
   let keep3rV1: IKeep3rV1;
   let helper: Keep3rHelperForTest;
   let job: BasicJob;
-  let governance: JsonRpcSigner;
+  let governor: JsonRpcSigner;
   let keeper: JsonRpcSigner;
   let snapshotId: string;
   let pair: UniV3PairManager;
@@ -39,22 +39,22 @@ describe('@skip-on-coverage Basic Keeper Job Interaction', () => {
     jobOwner = await wallet.impersonate(common.RICH_KP3R_ADDRESS);
     keeper = await wallet.impersonate(common.RICH_ETH_ADDRESS);
 
-    ({ keep3r, governance, keep3rV1, helper } = await common.setupKeep3r());
+    ({ keep3r, governor, keep3rV1, helper } = await common.setupKeep3r());
 
     // create job
     const jobFactory = (await ethers.getContractFactory('BasicJob')) as BasicJob__factory;
     job = await jobFactory.connect(jobOwner).deploy(keep3r.address);
-    await keep3r.connect(governance).addJob(job.address);
+    await keep3r.connect(governor).addJob(job.address);
 
     // create keeper
     await keep3r.connect(keeper).bond(keep3rV1.address, 0);
     await evm.advanceTimeAndBlock(moment.duration(3, 'days').as('seconds'));
     await keep3r.connect(keeper).activate(keep3rV1.address);
 
-    pair = await common.createLiquidityPair(governance);
-    await keep3r.connect(governance).approveLiquidity(pair.address);
+    pair = await common.createLiquidityPair(governor);
+    await keep3r.connect(governor).approveLiquidity(pair.address);
 
-    const { liquidity } = await common.addLiquidityToPair(jobOwner, pair, toUnit(1000), jobOwner);
+    const { liquidity } = await common.mintLiquidity(jobOwner, pair, toUnit(100), jobOwner._address);
 
     await pair.connect(jobOwner).approve(keep3r.address, liquidity);
 
@@ -74,7 +74,7 @@ describe('@skip-on-coverage Basic Keeper Job Interaction', () => {
     });
 
     beforeEach(async () => {
-      await keep3r.connect(jobOwner).addLiquidityToJob(job.address, pair.address, toUnit(100));
+      await keep3r.connect(jobOwner).addLiquidityToJob(job.address, pair.address, toUnit(10));
       await evm.advanceTimeAndBlock(DAY * 100);
     });
 
@@ -83,7 +83,7 @@ describe('@skip-on-coverage Basic Keeper Job Interaction', () => {
       const tx = await job.connect(keeper).work();
       const { gasUnaccounted } = await getGasReading(tx);
 
-      expect(gasUnaccounted).to.be.closeTo(BigNumber.from(43500), GAS_DELTA);
+      expect(gasUnaccounted).to.be.closeTo(BigNumber.from(63500), GAS_DELTA);
     });
 
     // some variables for the keeper are getting initialized in storage, that gas is actually unaccounted, thus not rewarded
@@ -160,13 +160,13 @@ describe('@skip-on-coverage Basic Keeper Job Interaction', () => {
     // this job has several deletions, generating a lot of unaccounted refunds
     it('should overpay for Kasparov job work', async () => {
       const chessJob = (await ethers.getContractAt('IKasparov', common.KASPAROV_JOB)) as IKasparov;
-      const chessGovernance = await wallet.impersonate(await chessJob.governor());
+      const chessGovernor = await wallet.impersonate(await chessJob.governor());
 
       await keep3r.connect(jobOwner).addJob(chessJob.address);
-      await keep3r.connect(jobOwner).addLiquidityToJob(chessJob.address, pair.address, toUnit(100));
-      await evm.advanceTimeAndBlock(DAY * 10);
+      await keep3r.connect(jobOwner).addLiquidityToJob(chessJob.address, pair.address, toUnit(10));
+      await evm.advanceTimeAndBlock(DAY * 10 - 1);
 
-      await chessJob.connect(chessGovernance).setKeep3r(keep3r.address);
+      await chessJob.connect(chessGovernor).setKeep3r(keep3r.address);
 
       await job.connect(keeper).work();
 
@@ -195,7 +195,7 @@ describe('@skip-on-coverage Basic Keeper Job Interaction', () => {
 
     beforeEach(async () => {
       initialBondedKP3R = await keep3r.callStatic.bonds(keeper._address, keep3rV1.address);
-      await keep3r.connect(jobOwner).addLiquidityToJob(job.address, pair.address, toUnit(100));
+      await keep3r.connect(jobOwner).addLiquidityToJob(job.address, pair.address, toUnit(10));
       await evm.advanceTimeAndBlock(DAY);
     });
 
@@ -214,7 +214,7 @@ describe('@skip-on-coverage Basic Keeper Job Interaction', () => {
       const helperBoost = await helper.minBoost();
 
       // work
-      const workTx = await job.connect(keeper).workHard(10_000);
+      const workTx = await job.connect(keeper).workHard(1_000);
 
       // calculate reward from work
       const afterWorkBondedKP3R = await keep3r.callStatic.bonds(keeper._address, keep3rV1.address);

@@ -214,7 +214,7 @@ Emitted when minimum rewarded priority fee is changed
 
 
 
-### `Kp3rWethPool`
+### `Kp3rWethOraclePool`
 
 
 address poolAddress
