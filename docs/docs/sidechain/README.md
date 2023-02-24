@@ -6,7 +6,7 @@ Sidechain implementations of Keep3r will use a wrapped version of both KP3R (`wK
 
 `Keep3rSidechain` incorporates a `virtualReserves` view method, that indicates how many surplus `wKP3R` credits are still available on the escrow to emit rewards.
 
-```solidity
+```js
 function virtualReserves() external view override returns (int256 _virtualReserves) {
   // Queries wKP3R balanceOf escrow contract minus the totalBonds
   return int256(IERC20(keep3rV1).balanceOf(keep3rV1Proxy)) - int256(totalBonds);
@@ -34,7 +34,7 @@ To improve keepers profitability and stabilize their income expectation, jobs in
 
 Jobs need to implement a new method `worked(address _keeper, uint256 _usdPerGasUnit)`, providing the amount of $USD (18 decimals) per gas unit they want to reward (twap quoted equivalent in `wKP3Rs`) for executing the task. Jobs will choose to overpay gas costs to incentivize keepers to maintain them, and keepers will have a broad margin to disesteem gas costs of the execution. Jobs will reward only gas costs expended on their task, and Keep3r internal calculations and state changes will not be rewarded to keepers.
 
-```solidity
+```js
 
 function worked(address) external pure override {
   revert Deprecated();

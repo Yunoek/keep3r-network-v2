@@ -1,43 +1,29 @@
+---
+sidebar_position: 1
+---
 # Introduction
 
 _These docs are in active development by the Keep3r community._
 
-The Keep3r Network is a decentralized network for projects that need external devops, and for external teams to find keeper jobs.
+The Keep3r Network allows delegating the execution of contracts to external actors (keepers), who in return will get the gas refunded and an added reward. Protocols will add their jobs (smart contracts) to the network, and keepers will execute the jobs for them.
+Everything in the Keep3r Network is permissionless, allowing anyone to create a job, or become a keeper.
 
 
-## [Keepers](core/keepers)
+## [Jobs](core/jobs/README.md)
 
-A Keeper is the term used to refer to an external address that executes a job. This can be as simplistic as calling a transaction, or as complex as requiring extensive off-chain logic. The scope of Keep3r network is not to manage these jobs themselves, but to allow contracts to register as jobs for keepers, and keepers to register themselves as available to perform jobs. It is up to the individual keeper to set up their DevOps and infrastructure and create their own rules based on what transactions they deem profitable.
+A Job is a term used to refer to a smart contract that wishes for an external entity (keeper) to execute an action. The job will wrap a particular function with extra logic in order to add the mechanism to reward keepers. Jobs would like the action to be performed in "goodwill" and not have a malicious result
 
-## [Jobs](core/jobs)
+## [Keepers](core/keepers/README.md)
+A Keeper is the term used to refer to an external address that executes a job. 
 
-A Job is the term used to refer to a smart contract that wishes an external entity to perform an action. They would like the action to be performed in "good will" and not have a malicious result. For this reason they register as a job, and keepers can then execute on their contract. Both relying on the Keep3r ecosystem to mediate in the event of a dispute.
+## [Credits](tokenomics/job-payment-mechanisms/)
 
-## [Credits](tokenomics/job-payment-mechanisms/credit-mining)
+Credits are allocated to each job and used to pay keepers for their work. A job can top up credits by [depositing tokens](tokenomics/job-payment-mechanisms/token-payments.md) or mining credits through [staking on liquidity pools](tokenomics/job-payment-mechanisms/credit-mining.md).
 
-Credits are used to pay keepers for their work. A job can either top up your credits [with tokens](tokenomics/job-payment-mechanisms/token-payments.md), or by mining credits with time by [staking liquidity](tokenomics/job-payment-mechanisms/credit-mining.md).
-
-![Keep3r mechanism](./assets/keep3r-mainnet.png)
+![Keep3r Payment mechanism](./assets/keep3r-mainnet.png)
 
 ## [Sidechain](sidechain/)
 
 The Keep3r Network also supports staking in Optimism and Polygon, where the payment rewards are calculated by `$USD / gasUnit` to improve keepers' profitability, and reduce the exposure to fluctuating gas prices.
 
 ![Keep3r Sidechain mechanism](./assets/keep3r-sidechain.png)
-
-#### Mainnet environment
-| Chain (`chainId`) | Implementation | Address |
-| -------- | -------- | -------- |
-| Ethereum (`1`)    | Keep3r     | `0xeb02addCfD8B773A5FFA6B9d1FE99c566f8c44CC`     |
-| Optimism (`10`)    | Keep3rSidechain     | `0x745a50320B6eB8FF281f1664Fc6713991661B129`     |
-| Polygon (`137`)    | Keep3rSidechain     | `TBD`     |
-
-#### Testnet environment
-| Chain (`chainId`) | Implementation | Address |
-| -------- | -------- | -------- |
-| Goerli (`5`)    | Keep3rForTestnet     | `0x85063437C02Ba7F4f82F898859e4992380DEd3bb`     |
-| Goerli (`5`)    | JobForTest     | `0xa2c7A15FFc02e00cdeedBba56c41dAaed84f8734`     |
-| OPGoerli (`420`)    | Keep3rSidechainForTestnet     | `0x85063437C02Ba7F4f82F898859e4992380DEd3bb`     |
-| OPGoerli (`420`)    | JobRatedForTest     | `0x9abB5cfF47b9F604351a6f0730d9fe39Fb620B2b`     |
-
-> ForTestnet implementations allow instant bonding and unbonding, and use a free-to-mint ERC20 as KP3Rv1.
